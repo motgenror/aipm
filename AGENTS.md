@@ -146,6 +146,8 @@ Stop after a phase of the root `doc/plan.md` is done and ask the operator to rev
 
 Do use subagents when you need to explore code to keep the main context clear of data that's not needed in it.
 
+Use read-only sub-agents to create or refresh `doc/deps/` notes for expensive third-party dependencies; their handoff must include the note path, exact version, symbols examined, commands run, and unresolved questions.
+
 When using multi-agent workflows:
 
 - Prefer sub-agents for read-heavy tasks such as exploration, test execution, triage, review, and summarization.
@@ -165,3 +167,49 @@ Each crate's API surface must be discoverable at a glance via documentation in `
 All unit tests must be placed in the crate-root `tests/` directory, not in main source files.
 
 Use `cargo-nextest` for tests, never `cargo test`.
+
+## Third-Party Dependency Reference Notes
+
+`doc/deps/` contains non-authoritative reference notes for third-party dependencies.
+
+These files are working summaries used to reduce repeated source exploration. They do not define workspace design decisions, implementation policy, or boundary contracts. `doc/design.md` remains the sole authority for workspace-project design decisions.
+
+For dependencies that are expensive to re-explore, store notes at:
+
+- `doc/deps/<crate>/<resolved-version>.md`
+
+Before broad third-party dependency exploration:
+
+1. Determine the exact resolved version from `Cargo.lock`.
+2. Determine relevant enabled features from workspace manifests / cargo metadata.
+3. Consult the matching `doc/deps/<crate>/<resolved-version>.md` note if it exists.
+4. Search local workspace use sites, wrappers, adapters, re-exports, and tests before opening upstream dependency source.
+5. Read upstream dependency source only for the exact symbols, traits, macros, and modules needed for the current task.
+6. If the note is missing, stale, or insufficient, use a read-only sub-agent to create or refresh it, then continue from that note.
+
+Dependency reference notes must include only:
+
+- crate name, exact version, enabled features, and verification date
+- why this workspace uses the crate
+- symbols/types/traits/macros actually used by this workspace
+- lifecycle, event-loop, threading, ownership, and callback invariants relevant to this workspace
+- integration gotchas, platform constraints, and feature-flag caveats
+- minimal upstream source entrypoints for deeper follow-up
+- commands and files consulted to verify the note
+
+Dependency reference notes must not include:
+
+- workspace design decisions owned by `doc/design.md`
+- implementation plans owned by `doc/plan.md`
+- environment-specific facts that belong in `ENV.md`
+- secrets, tokens, machine-local paths outside the workspace, or private operator data
+- broad summaries of unused parts of the dependency
+
+Refresh a dependency note when:
+
+- the resolved dependency version changes
+- enabled features change
+- the current task needs symbols not covered by the note
+- current upstream source, docs, or tests contradict the note
+
+Keep dependency notes short, high-signal, and limited to the parts of the dependency actually used by this workspace.
