@@ -52,6 +52,10 @@ The plans will also be split into phases. Phases exist to solve two problems:
 
 Subagents are great for efficient use of the main context window - the main agent offloads exploratory work to subagents, where subagents hand off the useful and very short summary of their investigation back to the main context window. It's often a difference between being able to plan a task in a single context window or not, if the AI has to explore a lot of code.
 
+## Long-term memory for unknown libraries mechanics
+
+Sometimes an AI model is not trained on a newer version of a library, or at all. It will end up exploring sources of such libraries over and over again, often the same things, spending valuable time and in some cases tokens. This `AGENTS.md` makes sure exploration results are preserved for re-use.
+
 ## Environmental facts
 
 Workspace root `ENV.md` is used to store things that the agent needs, but are only true for that particular environment, such as credentials, hostnames or whatever else. AIPMv1's instructions forbid committing that file and if it's discovered to be part of a VCS, that is an immediate and fatal error.
